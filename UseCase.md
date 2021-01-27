@@ -1,14 +1,12 @@
 # Use case
 
-
-
 1. **Pre-processing**
 
 The files must be .bam format. Using the metacaller with real data sets, we saw that chromosomes other the 1...22 and X,Y could cause spp to crash, so they should be removed beforehand. Also the chromosomes should be in the format of 1,2,...,Y and not CHR1,CHR2,...,CHRY or chr1,chr2,...,chrY. Finally the bigger file must be downsampled since some of the callers don't do that before the peak calling (homer, PeakRanger, spp) but even macs2 that by default downsamples the bigger one, it does that by linear scaling, which gives different results (only Q's peaks are the same).
 
 2. **Options**
 
-The help menu of metacaller is the following:
+The help menu of meta-caller is the following:
 
 ```
 usage: meta-caller [options]
@@ -18,6 +16,7 @@ Combined p-value based on 5 peak callers p-values
 optional arguments:
   -h, --help            show this help message and exit
   --name NAME           A name for the project
+  --cores CORES         Number of cores to be used
   --macs2_path MACS2_PATH
                         Path to the macs2 executable
   --peakranger_path PEAKRANGER_PATH
@@ -47,10 +46,10 @@ output-options:
                         the peaks. By default --keep is set to 3 and only
                         peaks with p-value < than the cut-off will be
                         reported.
-                        
+
 ```
 
-Only the treatment (-t) and control (-c) files are required, all the other options are optional. If we don't provide a name for the project by default will be 'NA', but be careful if we run the meta-caller again with different arguments, and again we don't assign a name to the project the initial files will be overwritten. It is advised to use the --name argument. 
+Only the treatment (-t) and control (-c) files are required, all the other options are optional. If we don't provide a name for the project by default will be 'NA', but be careful if we run the meta-caller again with different arguments, and again we don't assign a name to the project the initial files will be overwritten. It is advised to use the --name argument.
 
 ### simple use:
 
@@ -60,14 +59,14 @@ Only the treatment (-t) and control (-c) files are required, all the other optio
 
 - path arguments
 
-meta-caller gives us the option, if we have the different peak callers installed but not added to the path, to give their respective paths as arguments 
+meta-caller gives us the option, if we have the different peak callers installed but not added to the path, to give their respective paths as arguments
 
 e.g ``` ./metacaller.py -t treat.bam -c control.bam --name exampleuse --Q_path ~/Desktop/tools/Q/bin/Q```
 
 
 - filter arguments
 
-by default meta-caller keeps only peaks >=50 & <=1000bp during the filtering. This process is applied only on macs2, PeakRanger and spp** since homer's and Q's peaks have fixed length. These lengths can change, using --mnl and --mxl. Finally each peak by default is extended to 200bp (or trimmed), this can also change using the argument --l and a positive even integer. 
+by default meta-caller keeps only peaks >=50 & <=1000bp during the filtering. This process is applied only on macs2, PeakRanger and spp** since homer's and Q's peaks have fixed length. These lengths can change, using --mnl and --mxl. Finally each peak by default is extended to 200bp (or trimmed), this can also change using the argument --l and a positive even integer.
 
 - output options
 
@@ -76,7 +75,6 @@ since we run the peak callers with a very loose p-value (0.9), a lot of peaks an
 |chr|start|end|metacaller's p-value|name|scores|fdr|
 |---|-----|---|--------------------|----|------|---|
 
-and if -f and -s are choosen a similar file for each method. The --keep 2 option, also saves a file with all the peaks regardless of their significance (p-value > cut-off). And the --keep 1 option, keeps along with all the previous and the initial files from each peak caller. 
+and if -f and -s are choosen a similar file for each method. The --keep 2 option, also saves a file with all the peaks regardless of their significance (p-value > cut-off). And the --keep 1 option, keeps along with all the previous and the initial files from each peak caller.
 
  ```./metacaller.py -t treat.bam -c control.bam --name advanceduse -p 0.001 -s -f --mnl 100 --mxl 2000 --keep 1```
-

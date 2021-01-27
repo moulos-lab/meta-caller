@@ -6,6 +6,8 @@ from statsmodels.stats.multitest import fdrcorrection
 cwd = os.getcwd()
 
 def weighted(args):
+    print('----------------------')
+    print('Combine p-values:\n')
     ref_set_file = f'{cwd}/{args.name}_callers.txt'
     if not os.path.isfile(ref_set_file):
         sys.exit()
@@ -45,12 +47,31 @@ def weighted(args):
     common = common[['chr', 'start', 'end','meta-caller', 'name', 'scores', 'fdr']]
     filename = f"{cwd}/{args.name}_metacaller.tsv"
     common.to_csv(filename, sep = "\t", index = False)
-    #report all peaks if keep = 1 or 2
+    #bed file
+    bed_metacaller = common[['chr', 'start', 'end', 'name', 'meta-caller']].copy()
+    #convert p-value to score
+    #replace 0 values with min*0.9 (if any 0)
+    if bed_metacaller['meta-caller'].min() == 0:
+        replace_zero = bed_metacaller[bed_metacaller['meta-caller'] > 0]['meta-caller'].min() * 0.9
+        bed_metacaller['replaced_pvalue'] = bed_metacaller['meta-caller'].replace({0 : replace_zero})
+        bed_metacaller['score'] = np.log10(bed_metacaller['replaced_pvalue']).mul(-10)
+        bed_metacaller.drop(['replaced_pvalue'], axis = 1, inplace = True)
+    else:
+        bed_metacaller['score'] = np.log10(bed_metacaller['meta-caller']).mul(-10)
+    # add strand column
+    bed_metacaller['strand'] = "."
+    #write to file
+    filename_bed = f"{cwd}/{args.name}_metacaller.bed"
+    bed_metacaller.to_csv(filename_bed, sep = "\t", index = False, header = False)
+
+    #report all peaks if keep == 1 or 2
     if args.keep != 3 :
         filename2 = f'{cwd}/{args.name}_all_metacaller.tsv'
         common = pd.merge(combine, peaks_bed, on=['id'])
         common = common[['chr', 'start', 'end', 'meta-caller', 'name', 'scores', 'fdr']]
         common.to_csv(filename2, sep = "\t", index = False)
+    print('\t meta-caller completed')
+
 
 def simes(args):
     ref_set = pd.read_table(f'{cwd}/{args.name}_callers.txt', dtype = {'id' : 'object'})
@@ -77,11 +98,30 @@ def simes(args):
     common = common[['chr', 'start', 'end', 'simes', 'name', 'scores', 'fdr']]
     filename = f"{cwd}/{args.name}_simes.tsv"
     common.to_csv(filename, sep = "\t", index = False, header = True)
+    #bed file
+    bed_simes = common[['chr', 'start', 'end', 'name', 'simes']].copy()
+    #convert p-value to score
+    #replace 0 values with min*0.9 (if any 0)
+    if bed_simes['simes'].min() == 0:
+        replace_zero = bed_simes[bed_simes['simes'] > 0]['simes'].min() * 0.9
+        bed_simes['replaced_pvalue'] = bed_simes['simes'].replace({0 : replace_zero})
+        bed_simes['score'] = np.log10(bed_simes['replaced_pvalue']).mul(-10)
+        bed_simes.drop(['replaced_pvalue'], axis = 1, inplace = True)
+    else:
+        bed_simes['score'] = np.log10(bed_simes['simes']).mul(-10)
+    #add strand column
+    bed_simes['strand'] = "."
+    #write to file
+    filename_bed = f"{cwd}/{args.name}_simes.bed"
+    bed_simes.to_csv(filename_bed, sep = "\t", index = False, header = False)
+    #report all peaks if keep == 1 or 2
     if args.keep != 3:
         filename2 = f'{cwd}/{args.name}_all_simes.tsv'
         common = pd.merge(ref_set, peaks_bed, on=['id'])
         common = common[['chr', 'start', 'end', 'simes', 'name', 'scores', 'fdr']]
         common.to_csv(filename2, sep = "\t", index = False, header = True)
+    print('\t simes completed')
+
 
 def fishers(args):
     ref_set = pd.read_table(f'{cwd}/{args.name}_callers.txt', dtype = {'id' : 'object'})
@@ -101,10 +141,28 @@ def fishers(args):
     peaks_bed = pd.read_table(f'{cwd}/{args.name}.bed', dtype = {'chr': object})
     common = pd.merge(ref_set_p, peaks_bed, on=['id'])
     common = common[['chr', 'start', 'end', 'fishers', 'name', 'scores', 'fdr']]
-    filename = f"{cwd}/{args.name}_fishers.tsv"
+    filename = f"{cwd}/{args.name}_fisher.tsv"
     common.to_csv(filename, sep = "\t", index = False, header = True)
+    #bed filen
+    bed_fishers = common[['chr', 'start', 'end', 'name', 'fishers']].copy()
+    #convert p-value to score
+    #replace 0 values with min*0.9 (if any 0)
+    if bed_fishers['fishers'].min() == 0:
+        replace_zero = bed_fishers[bed_fishers['fishers'] > 0]['fishers'].min() * 0.9
+        bed_fishers['replaced_pvalue'] = bed_fishers['fishers'].replace({0 : replace_zero})
+        bed_fishers['score'] = np.log10(bed_fishers['replaced_pvalue']).mul(-10)
+        bed_fishers.drop(['replaced_pvalue'], axis = 1, inplace = True)
+    else:
+        bed_fishers['score'] = np.log10(bed_fishers['fishers']).mul(-10)
+    #add strand column
+    bed_fishers['strand'] = "."
+    #write to file
+    filename_bed = f"{cwd}/{args.name}_fisher.bed"
+    bed_fishers.to_csv(filename_bed, sep = "\t", index = False, header = False)
+    #report all peaks if keep == 1 or 2
     if args.keep != 3:
-        filename2 = f'{cwd}/{args.name}_all_fishers.tsv'
+        filename2 = f'{cwd}/{args.name}_all_fisher.tsv'
         common = pd.merge(ref_set, peaks_bed, on=['id'])
         common = common[['chr', 'start', 'end', 'fishers', 'name', 'scores', 'fdr']]
         common.to_csv(filename2, sep ="\t", index = False, header = True)
+    print('\t fisher\'s completed')
