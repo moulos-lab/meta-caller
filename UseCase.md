@@ -53,7 +53,7 @@ Only the treatment (-t) and control (-c) files are required, all the other optio
 
 ### simple use:
 
-``` ./metacaller.py -t treat.bam -c control.bam ```
+``` metacaller -t treat.bam -c control.bam ```
 
 ### advanced use:
 
@@ -61,7 +61,7 @@ Only the treatment (-t) and control (-c) files are required, all the other optio
 
 meta-caller gives us the option, if we have the different peak callers installed but not added to the path, to give their respective paths as arguments
 
-e.g ``` ./metacaller.py -t treat.bam -c control.bam --name exampleuse --Q_path ~/Desktop/tools/Q/bin/Q```
+e.g ``` metacaller -t treat.bam -c control.bam --name exampleuse --Q_path ~/Desktop/tools/Q/bin/Q```
 
 
 - filter arguments
@@ -77,4 +77,4 @@ since we run the peak callers with a very loose p-value (0.9), a lot of peaks an
 
 and if -f and -s are choosen a similar file for each method. The --keep 2 option, also saves a file with all the peaks regardless of their significance (p-value > cut-off). And the --keep 1 option, keeps along with all the previous and the initial files from each peak caller.
 
- ```./metacaller.py -t treat.bam -c control.bam --name advanceduse -p 0.001 -s -f --mnl 100 --mxl 2000 --keep 1```
+ ```metacaller -t treat.bam -c control.bam --name advanceduse -p 0.001 -s -f --mnl 100 --mxl 2000 --keep 1```
