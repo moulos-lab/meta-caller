@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import warnings
 import os
 import shutil
 import subprocess
@@ -11,6 +12,8 @@ from meta_caller.reference import check_adjusted_res, pool_ref_matrix
 from meta_caller.combine import weighted, simes, fishers
 cwd = os.getcwd()
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+warnings.filterwarnings("ignore", message="divide by zero encountered")
 
 def main():
     args = get_arguments()
@@ -73,22 +76,27 @@ def check_bam_files(args):
     print('----------------------')
     print('Checking files:\n')
     treat = args.treatment.name
-    if not os.path.isfile(treat) or not treat.endswith(".bam"):
-        sys.exit('Treatment file does not exist or does not have the correct .bam extension, please check again.')
-    else:
-        print(f'\t Treatment file: {treat}')
+    try:
+        bam_header = subprocess.check_output(['samtools', 'view', '-H', treat], encoding = 'UTF-8')
+        if bam_header.splitlines()[1].startswith("@SQ"):
+            print(f'\t Treatment file: {treat}')
+    except:
+        sys.exit(f'\t Treatment file is not a valid bam file')
+
     control = args.control.name
-    if not os.path.isfile(control) or not control.endswith(".bam"):
-        sys.exit('Control file does not exist or does not have the correct .bam extension, please check again')
-    else:
-        print(f'\t Control file: {control}')
+    try:
+        bam_header = subprocess.check_output(['samtools', 'view', '-H', control], encoding = 'UTF-8')
+        if bam_header.splitlines()[1].startswith("@SQ"):
+            print(f'\t Control file: {control}')
+    except:
+        sys.exit(f'\t Control file is not a valid bam file')
 
 def get_tool_path(args_path):
 
     if not shutil.which(args_path):
         sys.exit(f'Error:{args_path} not the correct path')
     else:
-        print(f'\t {args_path.split("/")[-1]}\'s path is correct')
+        print(f'\t {args_path.split("/")[-1]}\'s path ({args_path}) is correct')
 
 def check_dependencies(args):
     callers = {}
